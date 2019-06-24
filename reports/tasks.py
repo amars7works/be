@@ -2,7 +2,7 @@ from worksnaps_report.celery import app
 from celery.decorators import task
 from datetime import datetime, date, timedelta
 from celery.utils.log import get_task_logger
-from reports.views import get_all_users_daily_data
+from reports.views import get_all_users_daily_data, countDailyReport
 from reports.models import UserDailyReport
 
 from reports_2.mailers import send_mails_to_employer
@@ -23,12 +23,15 @@ def get_day_data():
 def send_mail_daily_report():
 	try:
 		today_date = date.today()
-		daily_reports = UserDailyReport.objects.filter(created_at=today_date).values()
-
+		daily_reports = UserDailyReport.objects.filter(created_at='2019-04-30')#today_date).values()
+		
 		subject = "Daily Reports"
 		data = {}
 		data['daily_reports'] = daily_reports
-
+		submittedEm, notSubmittedEm = countDailyReport()
+		data['submitted'] = submittedEm
+		data['notSubmitted'] = notSubmittedEm
+		print(data,"GGGGGGGG")
 		template_directory = 'email/daily_reports.html'
 
 		if daily_reports:

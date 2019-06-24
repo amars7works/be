@@ -1056,5 +1056,27 @@ def all_users_xml_data(from_date,to_date):
 	except:
 		logging.exception("message")
 
+def countDailyReport():
+	yesterday = str(date.today() - timedelta(days = 1))
+	yesterday = '2019-04-30'
+	get_data = UsersSummaryReport.objects.filter(date=yesterday)
 
+	serializer = UsersSummaryReportSerializers(get_data, many=True)
+	presentUser = []
+	for serializerdata in serializer.data:
+		presentUser.append(serializerdata['user_name'])
 
+	presentUser = list(dict.fromkeys(presentUser))
+	submittedUser = []
+	notSubmittedUser = []
+	daily_report_yesterday = UserDailyReport.objects.filter(created_at='2019-04-30')#str(date.today() - timedelta(days = 1)))
+	
+	reportPeople = [user.username for user in daily_report_yesterday]
+
+	response = []
+	for user in presentUser:
+		if user in reportPeople:
+			submittedUser.append(user)
+		else:
+			notSubmittedUser.append(user)
+	return submittedUser, notSubmittedUser

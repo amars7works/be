@@ -46,7 +46,7 @@ def send_requests_email_to_employer(data, from_email, username):
 
 
 
-@periodic_task(run_every=crontab(hour=0, minute=15, ))
+@task(name = 'report_2.email_daily_report_status')
 def send_daily_report_count():
 
 	"""

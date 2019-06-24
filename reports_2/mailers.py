@@ -13,7 +13,9 @@ from reports.serializers import UsersSummaryReportSerializers,\
 								UserListSerializers
 from reports.models import UserDailyReport, UsersSummaryReport, UsersList,TotalLeaves,ProjectsList
 from xlsxwriter.workbook import Workbook
-
+from io import BytesIO
+from tempfile import NamedTemporaryFile
+import base64
 
 def send_mails_to_employer(subject, template_directory, username="Admin", data=None, from_email=None):
 	from_email = settings.EMAIL_HOST_USER
@@ -57,7 +59,8 @@ def send_mails_to_owner(template_directory, username="Admin", from_email=None):
 			cc = settings.MANAGER_EMAIL_PROJECT_TWO
 		)
 	request_mail.content_subtype = "html"
-	request_mail.attach('dailyReportCount.xlsx',dailyReportEmployeeCount())
+	dailyReportEmployeeCount()
+	request_mail.attach_file('temp/dailyReportCount.xlsx')
 	request_mail.send()
 
 def dailyReportEmployeeCount():
@@ -87,10 +90,10 @@ def dailyReportEmployeeCount():
 
 		row_data = 0
 		column_data = 0
-
+		output = BytesIO()
 		response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 		response['Content-Disposition'] = "attachment; filename=DailyReportCount.xlsx"
-		book = Workbook(response,{'in_memory': True})
+		book = Workbook('temp/dailyReportCount.xlsx')
 
 		work_sheet = book.add_worksheet('dailyReportCount {}'.format(str(date.today() - timedelta(days = 1))))
 		cell_format = book.add_format()
@@ -123,62 +126,4 @@ def dailyReportEmployeeCount():
 		
 		book.close()	
 		
-		return response['Content-Disposition']
-# # @send_leave_request
-# def apply_leave_request():
-# 	today = date.today()
-# 	obj=ApplyLeave.objects.filter(created_at=today)
-# 	if obj:
-# 		msg="request {}".format(date.today())
-# 		msg=msg+'''
-# 			http://localhost:8000/biggboss/reports_2/applyleave/
-# 		'''
-			
-# 		return requestleavemail(msg)
-# 	else:
-# 		print("no data")
-
-
-# def requestleavemail(msg):
-# 	subject="request {}".format(date.today())
-# 	from_email = settings.EMAIL_HOST_USER
-# 	to = "sai@s7works.io"
-# 	cc = "vikramp@s7works.io,supraja@s7works.io"
-# 	rcpt = cc.split(",")  + [to]
-# 	res = send_mail(subject,msg,from_email,rcpt)
-# 	if(res==1):
-# 		print("Mail sent successfully")
-# 	else:
-# 		print("Failed to send mail")
-# 	return HttpResponse(msg)
-
-
-# # @send_user_daily_report_mail
-# def users_queryset():
-# 	obj=UserDailyReport.objects.filter(created_at=date.today())
-# 	filter_keys={'username','what_was_done_this_day','what_is_your_plan_for_the_next_day'}
-# 	a={}
-# 	msg="Daily Report {}".format(date.today())
-# 	for u in obj:
-# 		a[u.username]={key:value for key,value in u.__dict__.items() if key in filter_keys}
-# 		msg=msg+'''
-# 		user={},
-# 		what was done this day={},
-# 		what is your plan for the next day={}
-# 		'''
-# 		msg=msg.format(a[u.username]['username'],
-# 					   a[u.username]['what_was_done_this_day'],
-# 					   a[u.username]['what_is_your_plan_for_the_next_day'])
-# 	return dailyreportsmail(msg)
-
-
-# def dailyreportsmail(msg):
-# 	subject="Daily Report {}".format(date.today())
-# 	from_email = settings.EMAIL_HOST_USER
-# 	to="gowtham@s7works.io"
-# 	res=send_mail(subject,msg,from_email,[to])
-# 	if res==1:
-# 		print("Mail sent successfully")
-# 	else:
-# 		print("Failed to send mail")
-# 	return HttpResponse(msg)
+		return 

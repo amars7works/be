@@ -18,6 +18,19 @@
             </tr>
             <tr>
                 <td>
+                    <h4>Employees submitted:</h4>
+                    {% for user in submitted %}
+                        <p>{{ user }}</p>
+                    {% endfor %}
+                    <h4>Employees not submitted:</h4>
+                    {% for user in notSubmitted %}
+                        <p>{{ user }}</p>
+                    {% endfor %}
+
+                </td>
+            </tr>
+            <tr>
+                <td>
                     {% for daily_report in daily_reports %}
                         <h2>Daily Report -> {{ daily_report.username }}</h2>
                         <h4>Report posted at:</h4><p>{{ daily_report.created_at }}</p>
