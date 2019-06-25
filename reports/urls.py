@@ -21,6 +21,8 @@ urlpatterns = [
         name='user_register'),
     url(r'^register_form/', views.registration_html,name='register_form'),
      url(r'^summary_report/', views.usersummary.as_view(),name='summary_report'),
+     url(r'^create_group/',views.create_group,name = 'create_group'),
+     url(r'^get_group/',views.get_group,name = 'get_group'),
 ]
 
 # url(r'^daily_report/', views.daily_report_html,name='daily_report'),

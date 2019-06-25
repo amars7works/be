@@ -7,7 +7,8 @@ from reports.models import ProjectsList,\
 							RemainingAccruedLeaves,\
 							UserProfile,\
 							UserXmldata,\
-							TotalLeaves
+							TotalLeaves,\
+							UserGroup
 # Register your models here.
 
 class ProjectsListAdmin(admin.ModelAdmin):
@@ -46,6 +47,10 @@ class TotalLeavesAdmin(admin.ModelAdmin):
 	list_display = ('user',)
 	search_fields = ('user',)
 
+class UserGroupAdmin(admin.ModelAdmin):
+	list_display = ('user_group_name','get_leaders','get_members')
+	search_fields = ('user_group_name',)
+
 admin.site.register(ProjectsList,ProjectsListAdmin)
 admin.site.register(UsersList,UsersListAdmin)
 admin.site.register(HolidayList,HolidayListAdmin)
@@ -55,3 +60,5 @@ admin.site.register(UserProfile,UserProfileAdmin)
 admin.site.register(RemainingAccruedLeaves,RemainingAccruedLeavesAdmin)
 admin.site.register(UserXmldata,UserXmldataAdmin)
 admin.site.register(TotalLeaves,TotalLeavesAdmin)
+admin.site.register(UserGroup,UserGroupAdmin)
+

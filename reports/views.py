@@ -33,11 +33,14 @@ from reports.models import ProjectsList,\
 							UserProfile,\
 							RemainingAccruedLeaves,\
 							UserXmldata,\
-							TotalLeaves
+							TotalLeaves,\
+							UserGroup
+							
 
 from reports_2.models import BankAccountNumber
 
 from reports.serializers import UsersSummaryReportSerializers
+import json
 
 
 # Create your views here.
@@ -189,7 +192,102 @@ def create_project(request):
 		return JsonResponse({"Refresh":"Success"})
 	else:
 		return JsonResponse(
-			{"Sorry dude you do not have permissions":"To access you nust be super user"})
+			{"Sorry dude you do not have permissions":"To access you must be super user"})
+
+def create_group(request):
+	'''
+		This function creates a group with group name and leader and members
+	'''
+	user = request.user
+	if user.is_superuser:
+		received_json_data = json.loads(request.body.decode("utf-8"))
+		try:
+			group_name =received_json_data["group_name"]
+			leader_id = received_json_data["leader_id"]
+			member_id = received_json_data["member_id_list"]
+			
+		except:
+			return JsonResponse({
+				"Not enough parameters":True
+			})
+		try:
+			leader = UsersList.objects.get(user_id = leader_id)
+		except:
+			return JsonResponse(
+				{"Error":"No leader with this id"})
+		members_list = []
+		
+		try:
+			members_list = UsersList.objects.filter(user_id__in = member_id)
+		except:
+			return JsonResponse(
+				{"Error":"User id invalid for member"})
+
+		group = UserGroup.objects.filter(user_group_name = group_name)
+		
+		
+		if group:
+			return JsonResponse(
+				{"Error":"group name already present"})
+		else:
+			usergroup = UserGroup.objects.create(user_group_name = group_name)
+			for member in members_list:
+				usergroup.group_leader.add(leader)
+				usergroup.member.add(member)
+		return JsonResponse(
+			{"status":"group created succcessfully"})
+		
+	else:
+		return JsonResponse(
+			{"You do not have permission":"to access you must be a superuser"})
+
+def get_group(request):
+	user = request.user
+	received_json_data = json.loads(request.body.decode("utf-8"))
+	if not user.is_superuser:
+		try:
+			group_name =received_json_data["group_name"]
+			#leader_id = received_json_data["leader_id"]
+			#member_id = received_json_data["member_id_list"]
+			
+		except:
+			return JsonResponse({
+				"Not enough parameters":True
+			})
+		try:
+			group = UserGroup.objects.get(user_group_name = group_name)
+		except:
+			return JsonResponse(
+				{"Error":"group not present"})
+
+
+		
+		members_list = []
+		leader_list = []
+		for user in group.group_leader.all().values():
+			data = {
+				"name": str(user['user_first_name']) + " " + str(user['user_last_name']),
+				"email":user['user_email']
+			}
+			leader_list.append(data)
+		
+		for user in group.member.all().values():
+			data = {
+				"name": str(user['user_first_name']) + " " + str(user['user_last_name']),
+				"email":user['user_email']
+			}
+			members_list.append(data)
+		
+		response = {
+			'leader': leader_list,
+			'member': members_list
+		}
+		print(response,"GGGGG")
+
+	return HttpResponse(response)
+
+
+
 
 def convert_date_str_datetime(date_str):
 	'''
