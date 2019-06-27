@@ -2,10 +2,10 @@ from worksnaps_report.celery import app
 from celery.decorators import task
 from datetime import datetime, date, timedelta
 from celery.utils.log import get_task_logger
-from reports.views import get_all_users_daily_data, countDailyReport
+from reports.views import get_all_users_daily_data, countDailyReport,get_group
 from reports.models import UserDailyReport
 
-from reports_2.mailers import send_mails_to_employer
+from reports_2.mailers import send_mails_to_employer,send_mails_to_team
 
 logger = get_task_logger(__name__)
 
@@ -16,11 +16,50 @@ def get_day_data():
 		yesterday = (today_ist - timedelta(days=1))
 		day_before_yesterday = (yesterday - timedelta(days=1))
 		get_all_users_daily_data(day_before_yesterday,yesterday)
+
 	except Exception as e:
 		logger.error(e,exc_info=True)
 
 @task(name="reports.send_users_daily_reports_mail")
 def send_mail_daily_report():
+	
+	try:
+		today_date = date.today()
+		daily_reports = UserDailyReport.objects.filter(created_at='2019-04-30')#today_date).values()
+		group_data = get_group()
+		submittedEm, notSubmittedEm = countDailyReport()
+		subject = "Team Daily Reports for {}"
+		data = {}
+		for group in group_data:
+			data['group_name'] = group['group']
+			leader_list = []
+			member_list = []
+			submittedFinal = []
+			notSubmittedFinal = []
+			for employee in group['leader']:
+				leader_list.append(employee)
+			for employee in group['member']:
+				member_list.append(employee)
+			data['leaders'] = leader_list
+			
+			for user in member_list:
+				if user['name'] in submittedEm:
+					submittedFinal.append(user)
+				elif user['name'] in notSubmittedEm:
+					notSubmittedFinal.append(user)
+			data['submitted'] = submittedFinal
+			data['notSubmitted'] = notSubmittedFinal
+			template_directory = 'email/leads_report.html'
+			if daily_reports:
+				send_mails_to_team(
+					subject,
+					template_directory,
+					data=data
+				)
+		
+	except Exception as e:
+		logger.error(e,exc_info=True)
+
 	try:
 		today_date = date.today()
 		daily_reports = UserDailyReport.objects.filter(created_at='2019-04-30')#today_date).values()
@@ -31,7 +70,7 @@ def send_mail_daily_report():
 		submittedEm, notSubmittedEm = countDailyReport()
 		data['submitted'] = submittedEm
 		data['notSubmitted'] = notSubmittedEm
-		print(data,"GGGGGGGG")
+
 		template_directory = 'email/daily_reports.html'
 
 		if daily_reports:

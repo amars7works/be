@@ -17,24 +17,55 @@ from io import BytesIO
 from tempfile import NamedTemporaryFile
 import base64
 
+def send_mails_to_team(subject, template_directory, username="Admin", data=None, from_email=None):
+	from_email = settings.EMAIL_HOST_USER
+	for leader in data['leaders']:
+		#data['username'] = username
+		data['group_name'] = "Project name: {}".format(data['group_name'])
+		data['leader_name'] = leader['name']
+		subject_mail = subject.format(leader['name'])
+		print(data,"DDDDDDDD")
+		reciever_email = []
+		reciever_email.append(leader['email'])
+		print(reciever_email,"amar")
+		try:
+			html_content = render_to_string(template_directory, data)
+		except Exception as e:	
+			print(e,"HHGFFTFYJGJOOOOOOOO")
+		print('ffffffffggg')
+		try:
+			request_mail = EmailMessage(
+					subject_mail, 
+					html_content,
+					"S7works Admin <{}>".format(from_email), 
+					reciever_email,
+					bcc = settings.MANAGER_EMAIL_PROJECT_ONE,
+					cc = settings.MANAGER_EMAIL_PROJECT_TWO
+				)
+		except Exception as e:
+			print(e,'KKKKKK')
+		print('GGGG')
+		request_mail.content_subtype = "html"
+		request_mail.send()
+
 def send_mails_to_employer(subject, template_directory, username="Admin", data=None, from_email=None):
 	from_email = settings.EMAIL_HOST_USER
 	data['username'] = username
 	data['employer_name'] = settings.EMPLOYER_NAME
 	subject_mail = subject.format(username)
-
+	print(data,"DDAAATTTTAAA")
 	html_content = render_to_string(template_directory, data)
 
-	request_mail = EmailMessage(
-			subject_mail, 
-			html_content,
-			"S7works Admin <{}>".format(from_email), 
-			settings.EMPLOYER_EMAIL,
-			bcc = settings.MANAGER_EMAIL_PROJECT_ONE,
-			cc = settings.MANAGER_EMAIL_PROJECT_TWO
-		)
-	request_mail.content_subtype = "html"
-	request_mail.send()
+	# request_mail = EmailMessage(
+	# 		subject_mail, 
+	# 		html_content,
+	# 		"S7works Admin <{}>".format(from_email), 
+	# 		settings.EMPLOYER_EMAIL,
+	# 		bcc = settings.MANAGER_EMAIL_PROJECT_ONE,
+	# 		cc = settings.MANAGER_EMAIL_PROJECT_TWO
+	# 	)
+	# request_mail.content_subtype = "html"
+	# request_mail.send()
 
 def send_mails_to_owner(template_directory, username="Admin", from_email=None):
 	

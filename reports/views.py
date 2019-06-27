@@ -199,7 +199,7 @@ def create_group(request):
 		This function creates a group with group name and leader and members
 	'''
 	user = request.user
-	if user.is_superuser:
+	if not user.is_superuser:
 		received_json_data = json.loads(request.body.decode("utf-8"))
 		try:
 			group_name =received_json_data["group_name"]
@@ -223,16 +223,16 @@ def create_group(request):
 			return JsonResponse(
 				{"Error":"User id invalid for member"})
 
-		group = UserGroup.objects.filter(user_group_name = group_name)
+		group = UserGroup.objects.filter(name = group_name)
 		
 		
 		if group:
 			return JsonResponse(
 				{"Error":"group name already present"})
 		else:
-			usergroup = UserGroup.objects.create(user_group_name = group_name)
+			usergroup = UserGroup.objects.create(name = group_name)
 			for member in members_list:
-				usergroup.group_leader.add(leader)
+				usergroup.leads.add(leader)
 				usergroup.member.add(member)
 		return JsonResponse(
 			{"status":"group created succcessfully"})
@@ -241,30 +241,21 @@ def create_group(request):
 		return JsonResponse(
 			{"You do not have permission":"to access you must be a superuser"})
 
-def get_group(request):
-	user = request.user
-	received_json_data = json.loads(request.body.decode("utf-8"))
-	if not user.is_superuser:
-		try:
-			group_name =received_json_data["group_name"]
-			#leader_id = received_json_data["leader_id"]
-			#member_id = received_json_data["member_id_list"]
-			
-		except:
-			return JsonResponse({
-				"Not enough parameters":True
-			})
-		try:
-			group = UserGroup.objects.get(user_group_name = group_name)
-		except:
-			return JsonResponse(
-				{"Error":"group not present"})
+def get_group():
+	
+	try:
+		groups = UserGroup.objects.all()
+	except:
+		return JsonResponse(
+			{"Error":"group not present"})
 
-
-		
+	
+	
+	result = []
+	for group in groups:
 		members_list = []
 		leader_list = []
-		for user in group.group_leader.all().values():
+		for user in group.leads.all().values():
 			data = {
 				"name": str(user['user_first_name']) + " " + str(user['user_last_name']),
 				"email":user['user_email']
@@ -279,12 +270,14 @@ def get_group(request):
 			members_list.append(data)
 		
 		response = {
+			'group': group.name,
 			'leader': leader_list,
 			'member': members_list
 		}
-		print(response,"GGGGG")
-
-	return HttpResponse(response)
+		result.append(response)
+	
+		
+	return result
 
 
 

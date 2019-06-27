@@ -22,18 +22,18 @@ class UsersList(models.Model):
 		return "%s"%(self.user_email)
 
 class UserGroup(models.Model):
-	user_group_name = models.CharField(max_length = 100)
-	group_leader = models.ManyToManyField(UsersList,related_name='group_leader')
+	name = models.CharField(max_length = 100)
+	leads = models.ManyToManyField(UsersList,related_name='leads')
 	member = models.ManyToManyField(UsersList,related_name='group_member')
 
 	def get_leaders(self):
-		return ",".join([str(p) for p in self.group_leader.all()])
+		return ",".join([str(p) for p in self.leads.all()])
 
 	def get_members(self):
 		return ",".join([str(p) for p in self.member.all()])
 
 	def __str__(self):
-		return "%s"%(self.user_group_name)
+		return "%s"%(self.name)
 
 
 class UsersSummaryReport(models.Model):

@@ -48,8 +48,8 @@ class TotalLeavesAdmin(admin.ModelAdmin):
 	search_fields = ('user',)
 
 class UserGroupAdmin(admin.ModelAdmin):
-	list_display = ('user_group_name','get_leaders','get_members')
-	search_fields = ('user_group_name',)
+	list_display = ('name','get_leaders','get_members')
+	search_fields = ('name',)
 
 admin.site.register(ProjectsList,ProjectsListAdmin)
 admin.site.register(UsersList,UsersListAdmin)
